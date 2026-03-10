@@ -18,6 +18,7 @@ public class SimpleGame implements ApplicationListener {
     Texture backgroundTexture;
     Texture bucketTexture;
     Texture dropTexture;
+    Texture fireballTexture;
     Sound dropSound;
     Music music;
     SpriteBatch spriteBatch;
@@ -25,15 +26,18 @@ public class SimpleGame implements ApplicationListener {
     Sprite bucketSprite;
     Vector2 touchPos;
     ArrayList<Sprite> dropSprites;
+    ArrayList<Sprite> fireBalls;
     float dropTimer;
     Rectangle bucketRectangle;
     Rectangle dropRectangle;
+    Rectangle fireRectangle;
 
     @Override
     public void create() {
         backgroundTexture = new Texture("assets/background.png");
         bucketTexture = new Texture("assets/bucket.png");
         dropTexture = new Texture("assets/drop.png");
+        fireballTexture = new Texture("assets/fireball.png");
         
         dropSound = Gdx.audio.newSound(Gdx.files.internal("assets/drop.mp3"));
         music = Gdx.audio.newMusic(Gdx.files.internal("assets/music.mp3"));
@@ -47,6 +51,7 @@ public class SimpleGame implements ApplicationListener {
         touchPos = new Vector2();
         
         dropSprites = new ArrayList<>();
+        fireBalls = new ArrayList<>();
         
         bucketRectangle = new Rectangle();
         dropRectangle = new Rectangle();
@@ -68,14 +73,39 @@ public class SimpleGame implements ApplicationListener {
         draw();
     }
 
+    public void fire(){
+        float fireWidth = 1;
+        float fireHeight = 1;
+
+        Sprite fireSprite = new Sprite(fireballTexture);
+        fireSprite.setSize(fireWidth, fireHeight);
+        fireSprite.setX(bucketSprite.getX());
+        fireSprite.setY(bucketSprite.getY());
+        fireSprite.setRotation(1);
+        fireBalls.add(fireSprite);
+
+        fireRectangle = new Rectangle();
+        
+    }
+
     private void input() {
         float speed = 4f;
         float delta = Gdx.graphics.getDeltaTime();
 
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D)) {
             bucketSprite.translateX(speed * delta);
-        } else if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+        }  
+        if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) {
             bucketSprite.translateX(-speed * delta);
+        } 
+        if (Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W)){
+            bucketSprite.translateY(speed * delta);
+        } 
+        if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.S)){
+            bucketSprite.translateY(-speed * delta);
+        }
+        if(Gdx.input.isKeyPressed(Input.Keys.SPACE)){
+            fire();
         }
 
         if (Gdx.input.isTouched()) {
@@ -110,6 +140,14 @@ public class SimpleGame implements ApplicationListener {
                 dropSound.play();
             }
         }
+        for(int i = fireBalls.size() - 1; i >= 0; i--){
+            Sprite fireSprite = fireBalls.get(i);
+            float dropWidth = fireSprite.getWidth();
+            float dropHeight = fireSprite.getHeight();
+
+            fireSprite.translateY(2.5f * delta);
+            dropRectangle.set(fireSprite.getX(), fireSprite.getY(), dropWidth, dropHeight); 
+        }
 
         dropTimer += delta;
         if (dropTimer > 1f) {
@@ -132,6 +170,9 @@ public class SimpleGame implements ApplicationListener {
 
         for (Sprite dropSprite : dropSprites) {
             dropSprite.draw(spriteBatch);
+        }
+        for(Sprite fire : fireBalls){
+            fire.draw(spriteBatch);
         }
 
         spriteBatch.end();
